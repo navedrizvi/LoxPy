@@ -1,4 +1,4 @@
-#reserved keywords and literals (lexemes) mapped to tokens used by interpreter
+#reserved keywords and literals mapped to tokens (aka lexemes) used by interpreter
 token_types = {
 
     #Single-character tokens.

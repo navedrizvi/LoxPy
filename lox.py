@@ -1,51 +1,60 @@
 from sys import argv
-from tokenize import tokenize
 from token import Token
 from typing import List
+import argparse
 
 
 class Lox:
     ''' Responsible for launching interpreter '''
-
     had_error = False
 
-    #TODO: implement
-    def main(self):
-        if len(argv) > 1:
-            print("Usage: plox [script]")
-            exit(64)  #user-defined exit code
-        elif len(argv) == 1:
-            self.run_file(argv[0])
-        else:
-            self.run_prompt()
-
     #core driver
-    def run(self, source: str):
-        tokens = tokenize(source)  #TODO: implement core
-        # for token in tokens:
-        #     print(token)
-        pass
+    @staticmethod
+    def __run(source: str):
+        tokens = []
 
-    def error(self, line: int, message: str):
-        self.report(line, "", message)
+    @staticmethod
+    def error(line: int, message: str):
+        Lox.__report(line, "", message)
 
-    def __report(self, line: int, where: str, message: str):
+    @staticmethod
+    def __report(line: int, where: str, message: str):
         print(f"[line {line} ] Error {where}: {message}")
-        self.had_error = True
+        had_error = True
 
     # Wrapper functions
     # read file and execute
-    def run_file(self, path: str):
-        file_io = open(path, "r")
-        file_str_repr = file_io.read()
-        self.run(file_str_repr)
-        #Indicate error
-        if self.had_error:
-            exit(65)
+    @staticmethod
+    def run_files(file_paths: [str]):
+        for file_path in file_paths:
+            with open(file_path, "r") as file_io:
+                file_str_repr = file_io.read()
+                Lox.__run(file_str_repr)
+                #Indicate error
+                if had_error:
+                    exit(65)
 
-    def run_prompt(self):
-        io_stream = input()
-        while True:
-            print("> ", end="")
-            run(io_stream.readline())
-            self.had_error = False
+    @staticmethod
+    def run_prompt():
+        line = input("> ")
+        Lox.__run(line)
+        had_error = False
+        Lox.run_prompt()
+
+
+def main():
+    ''' Start lox interpreter session or execute source code file(s)
+    invoked by: python3 lox.py [files]
+    '''
+    parser = argparse.ArgumentParser()
+    parser.add_argument('files', nargs='*', help='Lox source code file(s)')
+    args = parser.parse_args()  #Returns list of files if provided by user
+
+    if args.files:
+        Lox.run_files(args.files)
+    else:
+        Lox.run_prompt()
+
+
+if __name__ == "__main__":
+    main()
