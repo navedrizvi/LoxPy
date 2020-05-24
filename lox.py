@@ -1,6 +1,7 @@
 from sys import argv
-from token import Token
+from token_ import Token
 from typing import List
+from scanner import Scanner
 import argparse
 
 
@@ -11,7 +12,10 @@ class Lox:
     #core driver
     @staticmethod
     def __run(source: str):
-        tokens = []
+        token_sc = Scanner(source)
+        tokens = token_sc.scan_tokens()
+        for token in tokens:
+            print(token)
 
     @staticmethod
     def error(line: int, message: str):
@@ -36,10 +40,10 @@ class Lox:
 
     @staticmethod
     def run_prompt():
-        line = input("> ")
-        Lox.__run(line)
-        had_error = False
-        Lox.run_prompt()
+        while True:
+            line = input("> ")
+            Lox.__run(line)
+            had_error = False
 
 
 def main():
