@@ -22,7 +22,7 @@ class TokenTypes(Enum):
     GREATER_EQUAL = 'GREATER_EQUAL'
     LESS = 'LESS'
     LESS_EQUAL = 'LESS_EQUAL'
-    IDENTIFIER = 'IDENTIFIER'
+    IDENTIFIER = 'IDENTIFIER'  # used for identifying a variable or class
     STRING = 'STRING'
     NUMBER = 'NUMBER'
     AND = 'AND'
@@ -42,3 +42,23 @@ class TokenTypes(Enum):
     VAR = 'VAR'
     WHILE = 'WHILE'
     EOF = 'EOF'
+
+
+keyword_token_map = {
+    'and': 'AND',
+    'class': 'CLASS',
+    'else': 'ELSE',
+    'false': 'FALSE',
+    'for': 'FOR',
+    'fun': 'FUN',
+    'if': 'IF',
+    'nil': 'NIL',
+    'or': 'OR',
+    'print': 'PRINT',
+    'return': 'RETURN',
+    'super': 'SUPER',
+    'this': 'THIS',
+    'true': 'TRUE',
+    'var': 'VAR',
+    'while': 'WHILE'
+}

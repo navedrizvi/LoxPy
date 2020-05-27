@@ -1,5 +1,5 @@
 from token_ import Token
-from token_type import TokenTypes, one_char_tokens_map, two_char_tokens_map, keyword_token_map
+from token_type import TokenTypes, keyword_token_map  #, one_char_tokens_map, two_char_tokens_map, keyword_token_map
 
 
 class Scanner:
@@ -14,87 +14,88 @@ class Scanner:
 
         # Current position tracking
         self.line = 1  # Current line number
-        self.lexeme_starts_at = 0  # First char offset in current lexeme being scanned
+        self.starts_at = 0  # First char offset in current lexeme being scanned
         self.current = 0  # Current char being scanned
 
     def scan_tokens(self) -> [Token]:
         ''' Core of scanner. Consumes source code characters in a loop. '''
         # Each turn of the loop scans a single token
-        while not self.__is_at_end():
-            self.lexeme_starts_at = self.current
-            self.__scan_token()
-        final_token = Token(TokenTypes.EOF, "", None, self.line)
+        while not self._is_at_end():
+            self.starts_at = self.current
+            self._scan_token()
+        final_token = Token('EOF', "", None, self.line)
         self.tokens.append(final_token)
         return self.tokens
 
-    def __advance(self) -> str:
+    def _advance(self) -> str:
+        ''' Returns current characater being consumed'''
         self.current += 1
         return self.source[self.current - 1]
 
-    def __is_at_end(self):
-        return self.current == len(self.source)
+    def _is_at_end(self) -> bool:
+        return self.current >= len(self.source)
 
-    def __is_next_char_in_source(self, expected: chr):
-        if self.__is_at_end():
+    def _is_next_char_in_source(self, expected: chr) -> bool:
+        if self._is_at_end():
             return False
         if self.source[self.current] != expected:
             return False
         self.current += 1
         return True
 
-    def __scan_token(self):
+    def _scan_token(self):
         '''Figures out lexeme of the source code character by consuming it 
          and any following chars part of that lexeme. Emits a token ypon reaching end of the lexeme'''
 
         # Inner-function used as dict dispatcher (alternative for switch-case)
-        def get_token(char):
+        def standard_token(char):
             switcher = {
                 '(':
-                lambda: self.__add_token(TokenTypes.LEFT_PAREN),
+                lambda: self._add_token('LEFT_PAREN'),
                 ')':
-                lambda: self.__add_token(TokenTypes.RIGHT_PAREN),
+                lambda: self._add_token('RIGHT_PAREN'),
                 '{':
-                lambda: self.__add_token(TokenTypes.LEFT_BRACE),
+                lambda: self._add_token('LEFT_BRACE'),
                 '}':
-                lambda: self.__add_token(TokenTypes.RIGHT_BRACE),
+                lambda: self._add_token('RIGHT_BRACE'),
                 ',':
-                lambda: self.__add_token(TokenTypes.COMMA),
+                lambda: self._add_token('COMMA'),
                 '.':
-                lambda: self.__add_token(TokenTypes.DOT),
+                lambda: self._add_token('DOT'),
                 '+':
-                lambda: self.__add_token(TokenTypes.PLUS),
+                lambda: self._add_token('PLUS'),
                 ';':
-                lambda: self.__add_token(TokenTypes.SEMICOLON),
+                lambda: self._add_token('SEMICOLON'),
                 '/':
-                lambda: self.__add_token(TokenTypes.SLASH),
+                lambda: self._add_token('SLASH'),
                 '*':
-                lambda: self.__add_token(TokenTypes.STAR),
+                lambda: self._add_token('STAR'),
 
-                #One or two character tokens
+                #Handle operators- One or two character tokens
                 '!':
-                lambda: self.__add_token(TokenTypes.BANG_EQUAL
-                                         if self.__is_next_char_in_source('=')
-                                         else TokenTypes.BANG),
+                lambda: self._add_token('BANG_EQUAL'
+                                        if self._is_next_char_in_source('=')
+                                        else 'BANG'),
                 "=":
-                lambda: self.__add_token(TokenTypes.EQUAL_EQUAL
-                                         if self.__is_next_char_in_source('=')
-                                         else TokenTypes.EQUAL),
+                lambda: self._add_token('EQUAL_EQUAL'
+                                        if self._is_next_char_in_source('=')
+                                        else 'EQUAL'),
                 ">":
-                lambda: self.__add_token(TokenTypes.GREATER_EQUAL
-                                         if self.__is_next_char_in_source('=')
-                                         else TokenTypes.GREATER),
+                lambda: self._add_token('GREATER_EQUAL'
+                                        if self._is_next_char_in_source('=')
+                                        else 'GREATER'),
                 '<':
-                lambda: self.__add_token(TokenTypes.LESS_EQUAL
-                                         if self.__is_next_char_in_source('=')
-                                         else TokenTypes.LESS),
+                lambda: self._add_token('LESS_EQUAL'
+                                        if self._is_next_char_in_source('=')
+                                        else 'LESS'),
 
                 #Edge cases
                 '/':
-                lambda: self.__handle_slash_case(),
+                lambda: self._handle_slash_case(),
                 '\n':
-                lambda: self.__incr_line(),
+                lambda: self._incr_line(),
                 '"':
-                lambda: self.__add_string_token(),
+                lambda: self._add_string_token(),
 
                 #Ignore white spaces
                 ' ':
@@ -105,49 +106,92 @@ class Scanner:
                 lambda: None,
             }
             try:
-                return switcher.get(char, None)()
-            except TypeError:
-                self.__Lox_error("Invalid token")
+                lexeme = switcher[char]()
+                return lexeme
+            except KeyError:
+                return None
 
-        c = self.__advance()
-        token = get_token(c)
+        c = self._advance()
+        standard_token_present = standard_token(c)
+        if not standard_token_present:
+            digits_present = self._getnumber(c)
+            if not digits_present:
+                self._getalphanumerics(
+                )  # default type for an undientified token is IDENTIFER
 
-    def __add_token(self, token_type, literal=None):
-        text = self.source[self.lexeme_starts_at:self.current]
+    def _getnumber(self, char: str) -> bool:
+        if char.isnumeric():
+            self._add_number_token()
+            return True
+        else:
+            return False
+
+    def _add_number_token(self):
+        ''' Stores integer and floating points '''
+        while self._peek().isnumeric():  # consume number digits
+            self._advance()
+
+        found_decimal: bool = self._peek() == '.' and self._peek_next(
+        ).isnumeric()
+
+        if found_decimal:
+            self._advance()  # skip '.'
+            # print(self._peek_next() + ' iiii' + self.source[self.current + 1])
+            while self._peek_next().isnumeric():  # consume decimal digits
+                self._advance()
+            self._advance()  # consume last decimal digit
+
+        number_str = self.source[self.starts_at:self.current]
+        self._add_token('NUMBER', float(number_str))
+
+    def _peek_next(self):
+        if self.current + 1 >= len(self.source):
+            return '\0'
+        return self.source[self.current + 1]
+
+    def _add_token(self, token_type, literal=None):
+        text = self.source[self.starts_at:self.current]
         self.tokens.append(Token(token_type, text, literal, self.line))
 
-    def __incr_line(self):
+    def _getalphanumerics(self):
+        while self._peek().isalnum():
+            self._advance()
+        text = self.source[self.starts_at:self.current]
+        type_ = keyword_token_map.get(text, 'IDENTIFIER')
+        self._add_token(type_)
+
+    def _incr_line(self):
         self.line += 1
 
-    def __handle_slash_case(self):
-        if self.__is_next_char_in_source("/"):
-            while (self.__peek() != '\n' and not self.__is_at_end()):
-                self.__advance()
+    def _handle_slash_case(self):
+        if self._is_next_char_in_source("/"):
+            while (self._peek() != '\n' and not self._is_at_end()):
+                self._advance()
         else:
-            self.__add_token(TokenTypes.SLASH)
+            self._add_token('SLASH')
 
-    def __add_string_token(self):
+    def _add_string_token(self):
         ''' Returns string token present between opening and closing quotes (string literals) '''
         #Consumes chacaters till ending quote is reached
-        while self.__peek() != '"' and not self.__is_at_end():
-            if self.__peek() == '\n':
+        while self._peek() != '"' and not self._is_at_end():
+            if self._peek() == '\n':
                 self.line += 1
-            self.__advance()
+            self._advance()
 
-        if self.__is_at_end():
-            self.__Lox_error("Unterminated string.")
+        if self._is_at_end():
+            self._Lox_error("Unterminated string.")
             return
 
         #Create the token (string value) that is used by interpreter
-        self.__advance()
-        value = self.source[self.lexeme_starts_at + 1, self.current - 1]
-        self.__add_token(TokenTypes.STRING, value)
+        self._advance()
+        value = self.source[self.starts_at + 1, self.current - 1]
+        self._add_token('STRING', value)
 
-    def __peek(self):
-        if self.__is_at_end():
+    def _peek(self) -> str:
+        if self._is_at_end():
             return '\0'
         return self.source[self.current]
 
-    def __Lox_error(self, message):
+    def _Lox_error(self, message):
         from lox import Lox
         Lox.error(self.line, message)

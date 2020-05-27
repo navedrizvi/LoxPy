@@ -11,7 +11,7 @@ class Lox:
 
     #core driver
     @staticmethod
-    def __run(source: str):
+    def _run(source: str):
         token_sc = Scanner(source)
         tokens = token_sc.scan_tokens()
         for token in tokens:
@@ -19,10 +19,10 @@ class Lox:
 
     @staticmethod
     def error(line: int, message: str):
-        Lox.__report(line, "", message)
+        Lox._report(line, "", message)
 
     @staticmethod
-    def __report(line: int, where: str, message: str):
+    def _report(line: int, where: str, message: str):
         print(f"[line {line} ] Error {where}: {message}")
         had_error = True
 
@@ -33,7 +33,7 @@ class Lox:
         for file_path in file_paths:
             with open(file_path, "r") as file_io:
                 file_str_repr = file_io.read()
-                Lox.__run(file_str_repr)
+                Lox._run(file_str_repr)
                 #Indicate error
                 if had_error:
                     exit(65)
@@ -42,7 +42,7 @@ class Lox:
     def run_prompt():
         while True:
             line = input("> ")
-            Lox.__run(line)
+            Lox._run(line)
             had_error = False
 
 
