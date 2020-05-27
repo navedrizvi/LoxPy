@@ -9,13 +9,14 @@ class Lox:
     ''' Responsible for launching interpreter '''
     had_error = False
 
-    #core driver
+    #Core driver
     @staticmethod
     def _run(source: str):
         token_sc = Scanner(source)
         tokens = token_sc.scan_tokens()
         for token in tokens:
             print(token)
+        print(len(tokens))
 
     @staticmethod
     def error(line: int, message: str):
@@ -26,8 +27,7 @@ class Lox:
         print(f"[line {line} ] Error {where}: {message}")
         had_error = True
 
-    # Wrapper functions
-    # read file and execute
+    #Wrapper functions
     @staticmethod
     def run_files(file_paths: [str]):
         for file_path in file_paths:

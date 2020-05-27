@@ -1,12 +1,12 @@
 from token_ import Token
-from token_type import TokenTypes, keyword_token_map  #, one_char_tokens_map, two_char_tokens_map, keyword_token_map
+from token_type import TokenTypes, keyword_token_map
 
 
 class Scanner:
-    '''Responsible for scanning input characters from source file to tokens parsed by the interpreter
+    '''Responsible for scanning input characters from source file to tokens parsed by the interpreter.
     
-    input: raw source doe
-    output: scan_tokens() returns list of tokens understood by interpreter
+    input: raw source code
+    output: scan_tokens() returns list of tokens understood by interpreter (higher-level representation)
     '''
     def __init__(self, source: str):
         self.source = source
@@ -50,6 +50,7 @@ class Scanner:
         # Inner-function used as dict dispatcher (alternative for switch-case)
         def stdtoken_switcher(char):
             switcher = {
+                #Single char tokens
                 '(':
                 lambda: self._add_token('LEFT_PAREN'),
                 ')':
@@ -71,7 +72,7 @@ class Scanner:
                 '*':
                 lambda: self._add_token('STAR'),
 
-                #Handle operators- One or two character tokens
+                #Handle operators- One or two char tokens
                 '!':
                 lambda: self._add_token('BANG_EQUAL'
                                         if self._is_next_char_in_source('=')
@@ -136,7 +137,6 @@ class Scanner:
 
         if found_decimal:
             self._advance()  # skip '.'
-            # print(self._peek_next() + ' iiii' + self.source[self.current + 1])
             while self._peek_next().isnumeric():  # consume decimal digits
                 self._advance()
             self._advance()  # consume last decimal digit
