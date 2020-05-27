@@ -43,12 +43,12 @@ class Scanner:
         self.current += 1
         return True
 
-    def _scan_token(self):
+    def _scan_token(self) -> bool:
         '''Figures out lexeme of the source code character by consuming it 
          and any following chars part of that lexeme. Emits a token ypon reaching end of the lexeme'''
 
         # Inner-function used as dict dispatcher (alternative for switch-case)
-        def standard_token(char):
+        def stdtoken_switcher(char):
             switcher = {
                 '(':
                 lambda: self._add_token('LEFT_PAREN'),
@@ -106,14 +106,14 @@ class Scanner:
                 lambda: None,
             }
             try:
-                lexeme = switcher[char]()
-                return lexeme
+                switcher[char]()
+                return True
             except KeyError:
-                return None
+                return False
 
         c = self._advance()
-        standard_token_present = standard_token(c)
-        if not standard_token_present:
+        stdtoken_present = stdtoken_switcher(c)
+        if not stdtoken_present:
             digits_present = self._getnumber(c)
             if not digits_present:
                 self._getalphanumerics(
