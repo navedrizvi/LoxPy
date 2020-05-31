@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class TokenTypes(Enum):
+class TokenType(Enum):
     ''' Enumeration of all token types in PyLox. Used by Scanner '''
     LEFT_PAREN = 'LEFT_PAREN'
     RIGHT_PAREN = 'RIGHT_PAREN'

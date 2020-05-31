@@ -1,5 +1,5 @@
 from token_ import Token
-from token_type import TokenTypes, keyword_token_map
+from token_type import TokenType, keyword_token_map
 
 
 class Scanner:
@@ -184,7 +184,7 @@ class Scanner:
 
         #Create the token (string value) that is used by interpreter
         self._advance()
-        value = self.source[self.starts_at + 1, self.current - 1]
+        value = self.source[self.starts_at + 1:self.current - 1]
         self._add_token('STRING', value)
 
     def _peek(self) -> str:
@@ -194,4 +194,4 @@ class Scanner:
 
     def _Lox_error(self, message):
         from lox import Lox
-        Lox.error(self.line, message)
+        Lox.error_line(self.line, message)

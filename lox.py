@@ -2,7 +2,9 @@ from sys import argv
 from token_ import Token
 from typing import List
 from scanner import Scanner
+from parser_ import Parser
 import argparse
+from pprint_ast import AstPrinter
 
 
 class Lox:
@@ -10,17 +12,27 @@ class Lox:
     had_error = False
 
     #Core driver
-    @staticmethod
-    def _run(source: str):
+    def _run(self, source: str):
         token_sc = Scanner(source)
         tokens = token_sc.scan_tokens()
-        for token in tokens:
-            print(token)
-        print(len(tokens))
+
+        parser = Parser(tokens)
+        expression = parser.parse()
+
+        if self.had_error:  #if syntax error stop interpreting
+            return
+        print(AstPrinter().print(expression))
 
     @staticmethod
-    def error(line: int, message: str):
+    def error_line(line: int, message: str):
         Lox._report(line, "", message)
+
+    @staticmethod
+    def error_token(token: Token, message: str):
+        if token.token_type_repr == 'EOF':
+            Lox._report(token.line, " at end", message)
+        else:
+            Lox._report(token.line, " at '" + token.lexeme + "'", message)
 
     @staticmethod
     def _report(line: int, where: str, message: str):
@@ -38,12 +50,11 @@ class Lox:
                 if had_error:
                     exit(65)
 
-    @staticmethod
-    def run_prompt():
+    def run_prompt(self):
         while True:
             line = input("> ")
-            Lox._run(line)
-            had_error = False
+            self._run(line)
+            self.had_error = False
 
 
 def main():
@@ -54,10 +65,12 @@ def main():
     parser.add_argument('files', nargs='*', help='Lox source code file(s)')
     args = parser.parse_args()  #Returns list of files if provided by user
 
+    lox = Lox()
+
     if args.files:
         Lox.run_files(args.files)
     else:
-        Lox.run_prompt()
+        lox.run_prompt()
 
 
 if __name__ == "__main__":
