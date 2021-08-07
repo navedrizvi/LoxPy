@@ -1,3 +1,5 @@
+from typing import List
+
 from expr import Binary, Expr, Grouping, IVisitor, Literal, Unary
 from collections import deque
 from token_ import Token
@@ -5,7 +7,8 @@ from token_type import TokenType
 
 
 class AstPrinter(IVisitor):
-    '''Given a Abstract Syntax Tree, print() produces a string of text that is valid syntax in source language (used for post-order traversal eval on AST as done by the interpreter)
+    '''Given a Abstract Syntax Tree, AstPrinter.print() produces a string of text that is 
+    valid syntax in source language (used for post-order traversal eval on AST as done by the interpreter)
     Adds functionality to the Expr subclasses
     '''
     def print(self, expr: Expr):
@@ -25,7 +28,7 @@ class AstPrinter(IVisitor):
     def visit_unary_expr(self, expr: Unary):
         return self._parenthesize(expr.operator.lexeme, expr.right)
 
-    def _parenthesize(self, name: str, *expr_attrs: [str]):
+    def _parenthesize(self, name: str, *expr_attrs: List[str]):
         ''' Builds the expression as a string in prefix/polish notation (similar to lisp)'''
         out = deque()
         out.append("(")

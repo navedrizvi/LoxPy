@@ -1,3 +1,4 @@
+from typing import List
 from token_ import Token
 from token_type import TokenType, keyword_token_map
 
@@ -5,8 +6,8 @@ from token_type import TokenType, keyword_token_map
 class Scanner:
     '''Responsible for scanning input characters from source file to tokens parsed by the interpreter.
     
-    input: raw source code
-    output: scan_tokens() returns list of tokens understood by interpreter (higher-level representation)
+    In: raw user source code
+    Out: call scan_tokens() returns list of tokens understood by interpreter
     '''
     def __init__(self, source: str):
         self.source = source
@@ -17,14 +18,18 @@ class Scanner:
         self.starts_at = 0  # First char offset in current lexeme being scanned
         self.current = 0  # Current char being scanned
 
-    def scan_tokens(self) -> [Token]:
-        ''' Core of scanner. Consumes source code characters in a loop. '''
+    def scan_tokens(self) -> List[Token]:
+        ''' Core of scanner. Consumes source code characters in a loop
+
+           :return: a list of tokens that are fed to TODO 
+         '''
         # Each turn of the loop scans a single token
         while not self._is_at_end():
             self.starts_at = self.current
             self._scan_token()
-        final_token = Token('EOF', "", None, self.line)
+        final_token = Token('EOF', '', None, self.line)
         self.tokens.append(final_token)
+
         return self.tokens
 
     def _advance(self) -> str:
@@ -171,8 +176,8 @@ class Scanner:
             self._add_token('SLASH')
 
     def _add_string_token(self):
-        ''' Returns string token present between opening and closing quotes (string literals) '''
-        #Consumes chacaters till ending quote is reached
+        ''' Adds the string token present between opening and closing quotes (string literals) '''
+        #Consumes characters till ending double quote is reached
         while self._peek() != '"' and not self._is_at_end():
             if self._peek() == '\n':
                 self.line += 1
@@ -182,9 +187,13 @@ class Scanner:
             self._Lox_error("Unterminated string.")
             return
 
-        #Create the token (string value) that is used by interpreter
+        # Creates the Token (string literal) that is interpretable by interpreter
         self._advance()
-        value = self.source[self.starts_at + 1:self.current - 1]
+
+        first_char_idx = self.starts_at + 1
+        last_char_idx = self.current - 1
+        value = self.source[first_char_idx:last_char_idx]
+
         self._add_token('STRING', value)
 
     def _peek(self) -> str:
